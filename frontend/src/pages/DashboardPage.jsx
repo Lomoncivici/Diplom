@@ -1,64 +1,69 @@
-import { useState } from 'react'
-import { createProject } from '../api'
-
-export default function DashboardPage({ projects, onProjectCreated }) {
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  async function handleSubmit(event) {
-    event.preventDefault()
-    setError('')
-    setLoading(true)
-
-    try {
-      await createProject(name, description)
-      setName('')
-      setDescription('')
-      onProjectCreated()
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
+export default function DashboardPage({ projects, onCreateProject, onOpenProject, user }) {
+  const totalTests = projects.reduce((sum, project) => sum + (project.tests_count || 0), 0)
 
   return (
-    <div className="content-grid">
+    <div className="workspace-page">
+      <section className="page-header">
+        <div>
+          <h1>Добро пожаловать, {user?.full_name || 'пользователь'}</h1>
+          <p className="muted">
+            Это рабочее пространство платформы нагрузочного тестирования. Управляй проектами и
+            переходи к тестам из одного места.
+          </p>
+        </div>
+
+        <div className="header-actions">
+          <button onClick={onCreateProject}>Создать проект</button>
+        </div>
+      </section>
+
+      <section className="stats-grid">
+        <article className="card stat-card">
+          <div className="muted">Проектов</div>
+          <div className="stat-value">{projects.length}</div>
+        </article>
+        <article className="card stat-card">
+          <div className="muted">Тестов</div>
+          <div className="stat-value">{totalTests}</div>
+        </article>
+        <article className="card stat-card">
+          <div className="muted">Роль</div>
+          <div className="stat-value stat-value--small">{user?.role || 'student'}</div>
+        </article>
+      </section>
+
       <section className="card">
-        <h2>Мои проекты</h2>
+        <div className="section-head">
+          <div>
+            <h2>Проекты</h2>
+            <p className="muted">Выбери проект, чтобы перейти к списку тестов и настройкам.</p>
+          </div>
+          <button className="button-secondary" onClick={onCreateProject}>
+            Новый проект
+          </button>
+        </div>
+
         {projects.length === 0 ? (
-          <p className="muted">Пока проектов нет. Создай первый проект ниже.</p>
+          <div className="empty-state">
+            <h3>Проектов пока нет</h3>
+            <p className="muted">Создай первый проект и добавь в него тесты нагрузки.</p>
+            <button onClick={onCreateProject}>Создать первый проект</button>
+          </div>
         ) : (
           <div className="list">
             {projects.map((project) => (
               <article className="project-card" key={project.id}>
-                <h3>{project.name}</h3>
-                <p>{project.description || 'Без описания'}</p>
-                <span className="muted">ID владельца: {project.owner_id}</span>
+                <div className="project-card__content">
+                  <h3>{project.name}</h3>
+                  <p>{project.description || 'Без описания'}</p>
+                </div>
+                <div className="project-card__actions">
+                  <button onClick={() => onOpenProject(project.id)}>Открыть</button>
+                </div>
               </article>
             ))}
           </div>
         )}
-      </section>
-
-      <section className="card">
-        <h2>Создать проект</h2>
-        <form onSubmit={handleSubmit} className="form-grid">
-          <label>
-            Название проекта
-            <input value={name} onChange={(e) => setName(e.target.value)} required />
-          </label>
-          <label>
-            Описание
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows="5" />
-          </label>
-          {error ? <div className="error">{error}</div> : null}
-          <button type="submit" disabled={loading}>
-            {loading ? 'Сохраняю...' : 'Создать проект'}
-          </button>
-        </form>
       </section>
     </div>
   )

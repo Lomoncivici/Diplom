@@ -8,7 +8,7 @@ class TestRunCreate(BaseModel):
 
 class TestRunResponse(BaseModel):
     id: int
-    scenario_id: int
+    test_id: int
     status: str
     started_at: datetime | None
     finished_at: datetime | None
@@ -19,6 +19,10 @@ class TestRunResponse(BaseModel):
     error_rate: int | None
     throughput: int | None
     created_at: datetime
+
+    requests_total:int | None
+    requests_success:int | None
+    requests_failed: int | None
 
     class Config:
         from_attributes = True

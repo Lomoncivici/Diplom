@@ -28,8 +28,8 @@ class Project(Base):
         uselist=False,
         cascade="all, delete-orphan",
     )
-    scenarios = relationship(
-        "TestScenario",
+    tests = relationship(
+        "Test",
         back_populates="project",
         cascade="all, delete-orphan",
     )

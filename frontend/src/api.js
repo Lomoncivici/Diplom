@@ -89,3 +89,52 @@ export async function updateProject(projectId, payload) {
     body: JSON.stringify(payload),
   })
 }
+
+export async function getProjectTests(projectId) {
+  return apiFetch(`/projects/${projectId}/tests`)
+}
+
+export async function createTest(projectId, payload) {
+  return apiFetch(`/projects/${projectId}/tests`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function getTest(testId) {
+  return apiFetch(`/tests/${testId}`)
+}
+
+export async function updateTest(testId, payload) {
+  return apiFetch(`/tests/${testId}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deleteTest(testId) {
+  return apiFetch(`/tests/${testId}`, {
+    method: 'DELETE',
+  })
+}
+
+export async function getTestRuns(testId) {
+  return apiFetch(`/tests/${testId}/runs`)
+}
+
+export async function createTestRun(testId, payload = {}) {
+  return apiFetch(`/tests/${testId}/runs`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function getRun(runId) {
+  return apiFetch(`/runs/${runId}`)
+}
+
+export async function deleteProject(projectId) {
+  return apiFetch(`/projects/${projectId}`, {
+    method: 'DELETE',
+  })
+}

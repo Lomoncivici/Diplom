@@ -1,3 +1,7 @@
+function getRoleLabel(role) {
+  return role === 'admin' ? 'Администратор' : 'Студент'
+}
+
 export default function Layout({ user, onLogout, children }) {
   return (
     <div className="page">
@@ -10,7 +14,7 @@ export default function Layout({ user, onLogout, children }) {
           <div className="user-box">
             <div>
               <strong>{user.full_name}</strong>
-              <div className="muted">{user.role}</div>
+              <div className="muted">{getRoleLabel(user.role)}</div>
             </div>
             <button onClick={onLogout}>Выйти</button>
           </div>

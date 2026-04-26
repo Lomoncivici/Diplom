@@ -37,7 +37,11 @@ def create_project_test(
 ):
     get_project_or_403(project_id, current_user, db)
 
-    test = Test(project_id=project_id, **payload.model_dump())
+    payload_data = payload.model_dump()
+    payload_data["name"] = payload_data["name"].strip()
+    if payload_data.get("description"):
+        payload_data["description"] = payload_data["description"].strip()
+    test = Test(project_id=project_id, **payload_data)
     db.add(test)
     db.commit()
     db.refresh(test)
@@ -52,7 +56,7 @@ def get_test(
 ):
     test = db.scalar(select(Test).where(Test.id == test_id))
     if not test:
-        raise HTTPException(status_code=404, detail="Test not found")
+        raise HTTPException(status_code=404, detail="Тест не найден")
 
     get_project_or_403(test.project_id, current_user, db)
     return test
@@ -67,11 +71,16 @@ def update_test(
 ):
     test = db.scalar(select(Test).where(Test.id == test_id))
     if not test:
-        raise HTTPException(status_code=404, detail="Test not found")
+        raise HTTPException(status_code=404, detail="Тест не найден")
 
     get_project_or_403(test.project_id, current_user, db)
 
-    for field, value in payload.model_dump().items():
+    payload_data = payload.model_dump()
+    payload_data["name"] = payload_data["name"].strip()
+    if payload_data.get("description"):
+        payload_data["description"] = payload_data["description"].strip()
+
+    for field, value in payload_data.items():
         setattr(test, field, value)
 
     db.commit()
@@ -87,7 +96,7 @@ def delete_test(
 ):
     test = db.scalar(select(Test).where(Test.id == test_id))
     if not test:
-        raise HTTPException(status_code=404, detail="Test not found")
+        raise HTTPException(status_code=404, detail="Тест не найден")
 
     get_project_or_403(test.project_id, current_user, db)
 

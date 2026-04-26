@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from sqlalchemy import JSON
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -60,6 +61,8 @@ class Test(Base):
     script_content: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     status: Mapped[str] = mapped_column(String(50), default="draft")
+
+    last_run_activity: Mapped[list | None] = mapped_column(JSON, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

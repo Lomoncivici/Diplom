@@ -1,43 +1,61 @@
+import { useState } from 'react'
 import { createTest, deleteTest } from '../api'
+import { buildPayloadFromTemplate, testTemplates } from '../data/testTemplates'
+import { getErrorMessage } from '../utils/apiErrors'
 
-const defaultTestPayload = {
-  name: 'Новый тест',
-  description: '',
-  goal: '',
-  target_entity: '',
-  project_type: 'api',
-  test_type: 'load',
-  environment: 'test',
-  target_url: '',
-  target_port: '',
-  success_criteria: '',
-  virtual_users: 50,
-  duration: '5m',
-  ramp_up: '30s',
-  ramp_down: '15s',
-  timeout: '30s',
-  repeat_count: 1,
-  monitoring_enabled: true,
-  prometheus_url: '',
-  grafana_url: '',
-  max_avg_response_ms: 500,
-  max_p95_ms: 1000,
-  max_error_rate: 2,
-  min_throughput: 100,
-  scenario_type: 'http',
-  script_content: '',
-  status: 'draft',
+function getTestTypeLabel(value) {
+  const labels = {
+    load: 'Нагрузочный',
+    smoke: 'Дымовой',
+    stress: 'Стрессовый',
+  }
+  return labels[value] || 'Тест'
+}
+
+function getEnvironmentLabel(value) {
+  const labels = {
+    local: 'Локальная среда',
+    test: 'Тестовая среда',
+    stage: 'Предпродовая среда',
+    prod: 'Рабочая среда',
+  }
+  return labels[value] || 'Не указано'
+}
+
+function getStatusLabel(value) {
+  const labels = {
+    draft: 'Черновик',
+    queued: 'В очереди',
+    running: 'Выполняется',
+    success: 'Успешно',
+    completed_with_errors: 'Завершён с ошибками',
+    failed: 'Ошибка',
+  }
+  return labels[value] || 'Неизвестно'
 }
 
 export default function TestList({ projectId, tests, onOpenTest, onReload }) {
+  const [error, setError] = useState('')
+  const [selectedTemplateId, setSelectedTemplateId] = useState(testTemplates[0]?.id || 'basic_get')
+
   async function handleCreate() {
-    await createTest(projectId, defaultTestPayload)
-    await onReload()
+    setError('')
+    try {
+      await createTest(projectId, buildPayloadFromTemplate(selectedTemplateId))
+      await onReload()
+    } catch (err) {
+      setError(getErrorMessage(err, 'Не удалось создать тест.'))
+    }
   }
 
   async function handleDelete(testId) {
-    await deleteTest(testId)
-    await onReload()
+    setError('')
+    try {
+      await deleteTest(testId)
+      await onReload()
+    } catch (err) {
+      setError(getErrorMessage(err, 'Не удалось удалить тест.'))
+    }
   }
 
   return (
@@ -45,15 +63,24 @@ export default function TestList({ projectId, tests, onOpenTest, onReload }) {
       <div className="section-head">
         <div>
           <h2>Тесты проекта</h2>
-          <p className="muted">Создавай отдельные тесты под разные сценарии и нагрузки.</p>
+          <p className="muted">Создавайте отдельные тесты под разные сценарии и нагрузки.</p>
         </div>
-        <button onClick={handleCreate}>Создать тест</button>
+        <div className="template-create-panel">
+          <select value={selectedTemplateId} onChange={(event) => setSelectedTemplateId(event.target.value)}>
+            {testTemplates.map((template) => (
+              <option key={template.id} value={template.id}>{template.name}</option>
+            ))}
+          </select>
+          <button onClick={handleCreate}>Создать из шаблона</button>
+        </div>
       </div>
+
+      {error ? <div className="error">{error}</div> : null}
 
       {tests.length === 0 ? (
         <div className="empty-state">
           <h3>Тестов пока нет</h3>
-          <p className="muted">Создай первый тест для этого проекта.</p>
+          <p className="muted">Выберите шаблон и создайте первый тест для этого проекта.</p>
           <button onClick={handleCreate}>Добавить тест</button>
         </div>
       ) : (
@@ -63,12 +90,12 @@ export default function TestList({ projectId, tests, onOpenTest, onReload }) {
               <div className="project-card__content">
                 <div className="project-nav-head">
                   <h3>{test.name}</h3>
-                  <span className="project-type-badge">{test.test_type}</span>
+                  <span className="project-type-badge">{getTestTypeLabel(test.test_type)}</span>
                 </div>
                 <p>{test.goal || 'Цель теста пока не указана.'}</p>
                 <div className="project-nav-meta">
-                  <span>Статус: {test.status}</span>
-                  <span>Среда: {test.environment}</span>
+                  <span>Статус: {getStatusLabel(test.status)}</span>
+                  <span>Среда: {getEnvironmentLabel(test.environment)}</span>
                 </div>
               </div>
 

@@ -9,12 +9,24 @@ function formatDate(value) {
   }
 }
 
+function getRunStatusLabel(status) {
+  const labels = {
+    queued: 'В очереди',
+    running: 'Выполняется',
+    success: 'Успешно',
+    completed_with_errors: 'Завершён с ошибками',
+    failed: 'Ошибка',
+    unknown: 'Неизвестно',
+  }
+  return labels[status] || status || 'Неизвестно'
+}
+
 function RunLogCard({ run, defaultOpen = false }) {
   const [open, setOpen] = useState(defaultOpen)
 
   const title = useMemo(() => {
-    const runId = run?.id ?? '—'
-    return `Запуск #${runId}`
+    const runNumber = run?.display_number ?? run?.id ?? '—'
+    return `Запуск № ${runNumber}`
   }, [run])
 
   return (
@@ -28,7 +40,7 @@ function RunLogCard({ run, defaultOpen = false }) {
           <div className="run-log-card__title">{title}</div>
           <div className="run-log-card__meta">
             <span className={`run-log-card__status run-log-card__status--${run?.status || 'unknown'}`}>
-              {run?.status || 'unknown'}
+              {getRunStatusLabel(run?.status)}
             </span>
             <span>Старт: {formatDate(run?.started_at)}</span>
             <span>Финиш: {formatDate(run?.finished_at)}</span>
@@ -71,7 +83,7 @@ export default function LogsPanel({ runs }) {
         <div>
           <h2>Логи запусков</h2>
           <p className="muted">
-            Логи сгруппированы по отдельным запускам. Нажми на карточку, чтобы развернуть подробности.
+            Логи сгруппированы по отдельным запускам. Нажмите на карточку, чтобы развернуть подробности.
           </p>
         </div>
       </div>

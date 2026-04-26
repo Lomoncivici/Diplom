@@ -1,0 +1,25 @@
+# """add threshold results to test runs
+
+# Revision ID: 0007_test_run_thresholds
+# Revises: 0006_test_last_run_activity
+# Create Date: 2026-04-01
+# """
+
+# from alembic import op
+# import sqlalchemy as sa
+
+
+# revision = "0007_test_run_thresholds"
+# down_revision = "0006_test_last_run_activity"
+# branch_labels = None
+# depends_on = None
+
+
+# def upgrade() -> None:
+#     op.add_column("test_runs", sa.Column("threshold_passed", sa.Boolean(), nullable=True))
+#     op.add_column("test_runs", sa.Column("threshold_results", sa.JSON(), nullable=True))
+
+
+# def downgrade() -> None:
+#     op.drop_column("test_runs", "threshold_results")
+#     op.drop_column("test_runs", "threshold_passed")

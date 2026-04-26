@@ -9,7 +9,12 @@ from app.models.user import User
 from app.models.project import Project
 
 from app.models.project_settings import ProjectSettings
+from app.models.test import Test
 from app.models.test_run import TestRun
+from app.models.system_settings import SystemSettings
+from app.models.support_conversation import SupportConversation
+from app.models.support_message import SupportMessage
+from app.models.auth_action_token import AuthActionToken
 
 config = context.config
 

@@ -1,16 +1,54 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from app.core.validation import validate_http_url
 
 
-class ProjectCreate(BaseModel):
+class ProjectFields(BaseModel):
     name: str = Field(min_length=2, max_length=255)
-    description: str | None = None
+    description: str | None = Field(default=None, max_length=5000)
+    system_type: str = Field(default="api", max_length=50)
+    base_url: str | None = None
+    environment_name: str | None = Field(default=None, max_length=120)
+    system_owner: str | None = Field(default=None, max_length=255)
+
+    @field_validator("base_url")
+    @classmethod
+    def validate_base_url_value(cls, value: str | None) -> str | None:
+        return validate_http_url(value, field_name="Базовый адрес системы")
+
+    @field_validator("name")
+    @classmethod
+    def validate_name_value(cls, value: str) -> str:
+        text = value.strip()
+        if len(text) < 2:
+            raise ValueError("Название системы должно содержать минимум два символа")
+        if len(text) > 255:
+            raise ValueError("Название системы не должно быть длиннее 255 символов")
+        return text
+
+    @field_validator("description", "environment_name", "system_owner")
+    @classmethod
+    def strip_optional_text_value(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        text = value.strip()
+        return text or None
+
+    @field_validator("system_type")
+    @classmethod
+    def normalize_system_type(cls, value: str) -> str:
+        text = value.strip().lower()
+        return text or "api"
 
 
-class ProjectUpdate(BaseModel):
-    name: str = Field(min_length=2, max_length=255)
-    description: str | None = None
+class ProjectCreate(ProjectFields):
+    pass
+
+
+class ProjectUpdate(ProjectFields):
+    pass
 
 
 class ProjectOwnerResponse(BaseModel):
@@ -19,20 +57,20 @@ class ProjectOwnerResponse(BaseModel):
     full_name: str
     role: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
-class ProjectResponse(BaseModel):
+class ProjectResponse(ProjectFields):
     id: int
-    name: str
-    description: str | None
     owner_id: int
     created_at: datetime
+    tests_count: int | None = None
+    components_count: int | None = None
+    internal_components_count: int | None = None
+    external_integrations_count: int | None = None
     owner: ProjectOwnerResponse | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ProjectAnalyticsTotals(BaseModel):

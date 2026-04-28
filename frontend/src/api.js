@@ -129,6 +129,30 @@ export async function updateProject(projectId, payload) {
   })
 }
 
+export async function getProjectComponents(projectId) {
+  return apiFetch(`/projects/${projectId}/components`)
+}
+
+export async function createProjectComponent(projectId, payload) {
+  return apiFetch(`/projects/${projectId}/components`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function updateProjectComponent(projectId, componentId, payload) {
+  return apiFetch(`/projects/${projectId}/components/${componentId}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deleteProjectComponent(projectId, componentId) {
+  return apiFetch(`/projects/${projectId}/components/${componentId}`, {
+    method: 'DELETE',
+  })
+}
+
 export async function getProjectAnalytics(projectId) {
   return apiFetch(`/projects/${projectId}/analytics`)
 }

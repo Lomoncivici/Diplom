@@ -37,12 +37,32 @@ function getStatusLabel(value) {
   return labels[value] || 'Неизвестно'
 }
 
+
+function getSystemTypeLabel(value) {
+  const labels = {
+    api: 'API и веб-служба',
+    website: 'Веб-сайт',
+    web_application: 'Веб-приложение',
+    microservice_system: 'Микросервисная система',
+    mobile_backend: 'Сервер мобильного приложения',
+    other: 'Другая система',
+  }
+  return labels[value] || 'Тестируемая система'
+}
+
+function getSystemSummary(project) {
+  return [getSystemTypeLabel(project.system_type), project.environment_name, project.base_url].filter(Boolean).join(' · ')
+}
 function buildProjectSearchText(project, tests) {
   return normalizeText([
     project.name,
     project.description,
     project.owner?.full_name,
     project.owner?.email,
+    project.system_type,
+    project.base_url,
+    project.environment_name,
+    project.system_owner,
     ...tests.flatMap((test) => [test.name, test.description, test.goal, test.target_entity]),
   ].join(' '))
 }
@@ -128,8 +148,8 @@ export default function ProjectTreeExplorer({
       return [
         {
           key: 'my-projects',
-          title: 'Мои проекты',
-          subtitle: `Проектов: ${items.length}`,
+          title: 'Мои системы',
+          subtitle: `Систем: ${items.length}`,
           projects: items,
         },
       ]
@@ -197,11 +217,11 @@ export default function ProjectTreeExplorer({
     <div className="workspace-stack">
       <div className="catalog-toolbar">
         <label className="catalog-search">
-          Поиск по проектам и тестам
+          Поиск по системам и тестам
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Введите название проекта, теста или пользователя"
+            placeholder="Введите название системы, теста, адрес или пользователя"
           />
         </label>
 
@@ -210,12 +230,12 @@ export default function ProjectTreeExplorer({
             Показать всё
           </button>
           <button type="button" className="button-secondary" onClick={collapseAllProjects}>
-            Скрыть все тесты
+            Скрыть тесты
           </button>
         </div>
       </div>
 
-      <div className="muted small">Найдено проектов: {visibleProjectsCount}</div>
+      <div className="muted small">Найдено систем: {visibleProjectsCount}</div>
 
       {error ? <div className="error">{error}</div> : null}
 
@@ -235,7 +255,7 @@ export default function ProjectTreeExplorer({
                   <div className="project-folder-user-info">
                     <div className="project-folder-title">{group.title}</div>
                     <div className="project-folder-subtitle">
-                      {group.subtitle} · Проектов: {group.projects.length}
+                      {group.subtitle} · Систем: {group.projects.length}
                     </div>
                   </div>
                   <button
@@ -243,7 +263,7 @@ export default function ProjectTreeExplorer({
                     className="folder-toggle-button"
                     onClick={() => toggleOwner(group.key)}
                   >
-                    {ownerCollapsed ? 'Показать проекты' : 'Скрыть проекты'}
+                    {ownerCollapsed ? 'Показать системы' : 'Скрыть системы'}
                   </button>
                 </div>
               ) : null}
@@ -260,12 +280,20 @@ export default function ProjectTreeExplorer({
                         <div className="project-card__content">
                           <div className="project-nav-head">
                             <h3>{project.name}</h3>
-                            <span className="project-type-badge">Тестов: {project.totalTests}</span>
+                            <div className="project-card__badges">
+                              <span className="project-type-badge">Тестов: {project.totalTests}</span>
+                              <span className="project-type-badge">Структура: {project.components_count || 0}</span>
+                            </div>
                           </div>
-                          <p>{project.description || 'Описание отсутствует.'}</p>
+                          <p>{project.description || 'Описание системы отсутствует.'}</p>
                           <div className="project-nav-meta">
-                            {groupByOwner ? <span>Владелец: {project.owner?.full_name || project.owner?.email || '—'}</span> : null}
+                            <span>{getSystemSummary(project) || 'Карточка тестируемой системы'}</span>
+                            {groupByOwner ? <span>Владелец платформы: {project.owner?.full_name || project.owner?.email || '—'}</span> : null}
                             <span>Создан: {new Date(project.created_at).toLocaleString('ru-RU')}</span>
+                          </div>
+                          {project.system_owner ? <div className="muted small">Ответственный за систему: {project.system_owner}</div> : null}
+                          <div className="muted small">
+                            Внутренних компонентов: {project.internal_components_count || 0} · Внешних интеграций: {project.external_integrations_count || 0}
                           </div>
                         </div>
 
@@ -274,7 +302,7 @@ export default function ProjectTreeExplorer({
                             {projectCollapsed ? 'Показать тесты' : 'Скрыть тесты'}
                           </button>
                           <button type="button" onClick={() => onOpenProject?.(project.id)}>
-                            Открыть проект
+                            Открыть систему
                           </button>
                         </div>
 
@@ -283,7 +311,7 @@ export default function ProjectTreeExplorer({
                             {isLoading ? (
                               <div className="muted">Загрузка тестов...</div>
                             ) : visibleTests.length === 0 ? (
-                              <div className="empty-box">Тесты для этого проекта не найдены.</div>
+                              <div className="empty-box">Тесты для этой системы не найдены.</div>
                             ) : (
                               <div className="list compact-list">
                                 {visibleTests.map((test) => (

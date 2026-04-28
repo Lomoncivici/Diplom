@@ -9,7 +9,7 @@ function getOwnerLabel(account) {
 }
 
 function getRoleLabel(role) {
-  return role === 'admin' ? 'Администратор' : 'Студент'
+  return role === 'admin' ? 'Администратор' : 'Пользователь'
 }
 
 function normalizeText(value) {
@@ -37,6 +37,26 @@ function getStatusLabel(value) {
   return labels[value] || 'Неизвестно'
 }
 
+
+function getSystemTypeLabel(value) {
+  const labels = {
+    api: 'API и веб-служба',
+    website: 'Веб-сайт',
+    web_application: 'Веб-приложение',
+    microservice_system: 'Микросервисная система',
+    mobile_backend: 'Сервер мобильного приложения',
+    other: 'Другая система',
+  }
+  return labels[value] || 'Тестируемая система'
+}
+
+function getSystemSummary(project) {
+  return [
+    getSystemTypeLabel(project.system_type),
+    project.environment_name,
+    project.base_url,
+  ].filter(Boolean).join(' · ')
+}
 function buildProjectSearchText(project, owner) {
   return normalizeText([
     project.name,
@@ -44,6 +64,13 @@ function buildProjectSearchText(project, owner) {
     owner?.full_name,
     owner?.email,
     getOwnerLabel(owner),
+    project.system_type,
+    project.base_url,
+    project.environment_name,
+    project.system_owner,
+    project.components_count,
+    project.internal_components_count,
+    project.external_integrations_count,
   ].join(' '))
 }
 
@@ -71,7 +98,6 @@ export default function Sidebar({
   onOpenDashboard,
   onOpenAdmin,
   onOpenSupport,
-  onOpenProfile,
   onLogout,
   uiSettings,
   onChangeTheme,
@@ -118,7 +144,7 @@ export default function Sidebar({
           return
         }
         if (!firstError) {
-          firstError = getErrorMessage(result.reason, 'Не удалось загрузить тесты проектов.')
+          firstError = getErrorMessage(result.reason, 'Не удалось загрузить тесты систем.')
         }
       })
 
@@ -172,7 +198,7 @@ export default function Sidebar({
         })
         .filter(Boolean)
 
-      return [{ key: 'user-projects', title: 'Проекты', projects: items }]
+      return [{ key: 'user-projects', title: 'Системы', projects: items }]
     }
 
     const groups = new Map()
@@ -288,24 +314,30 @@ export default function Sidebar({
       <article key={project.id} className={`project-nav-item sidebar-project-card ${selectedProjectId === project.id ? 'selected' : ''}`}>
         <div className="project-nav-head">
           <strong>{project.name}</strong>
-          <span className="project-type-badge">Тестов: {project.totalTests}</span>
+          <div className="project-card__badges">
+            <span className="project-type-badge">Тестов: {project.totalTests}</span>
+            <span className="project-type-badge">Структура: {project.components_count || 0}</span>
+          </div>
         </div>
 
         <div className="project-nav-desc">
-          {project.description || 'Описание проекта пока не заполнено.'}
+          {project.description || 'Описание системы пока не заполнено.'}
         </div>
 
         <div className="project-nav-meta">
+          <span>{getSystemSummary(project) || 'Карточка системы'}</span>
           <span>Номер: {project.id}</span>
           {user?.role === 'admin' ? <span>{project.owner?.full_name || project.owner?.email || '—'}</span> : null}
         </div>
+        {project.system_owner ? <div className="muted small">Ответственный: {project.system_owner}</div> : null}
+        <div className="muted small">Внутренних компонентов: {project.internal_components_count || 0} · Внешних интеграций: {project.external_integrations_count || 0}</div>
 
         <div className="sidebar-inline-actions">
           <button type="button" className="button-secondary" onClick={() => toggleProject(project.id)}>
             {isCollapsed ? 'Показать тесты' : 'Скрыть тесты'}
           </button>
           <button type="button" onClick={() => onSelectProject(project.id)}>
-            Открыть проект
+            Открыть систему
           </button>
         </div>
 
@@ -314,7 +346,7 @@ export default function Sidebar({
             {isLoading ? (
               <div className="empty-box">Загрузка тестов...</div>
             ) : visibleTests.length === 0 ? (
-              <div className="empty-box">Для этого проекта тесты не найдены.</div>
+              <div className="empty-box">Для этой системы тесты не найдены.</div>
             ) : (
               visibleTests.map((test) => renderTestItem(test))
             )}
@@ -330,8 +362,8 @@ export default function Sidebar({
         <button className="brand-button" type="button" onClick={onOpenDashboard}>
           <div className="brand-mark">НТ</div>
           <div>
-            <div className="brand-title">Тестирование апи</div>
-            <div className="muted small">Рабочее пространство для нагрузочного тестирования</div>
+            <div className="brand-title">Нагрузочное тестирование</div>
+            <div className="muted small">Платформа для тестирования внешних систем</div>
           </div>
         </button>
 
@@ -340,16 +372,12 @@ export default function Sidebar({
           <div>
             <div className="user-name">{user?.full_name || user?.email}</div>
             <div className="muted small">{getRoleLabel(user?.role)}</div>
-            {!user?.email_is_verified ? <div className="sidebar-warning-chip">Почта не подтверждена</div> : null}
           </div>
         </div>
 
         <div className="sidebar-actions">
           <button type="button" onClick={onCreateProject}>
-            + Создать проект
-          </button>
-          <button type="button" className="button-secondary" onClick={onOpenProfile}>
-            Профиль
+            + Добавить систему
           </button>
           {user?.role === 'admin' ? (
             <button type="button" className="button-secondary" onClick={onOpenAdmin}>
@@ -361,7 +389,7 @@ export default function Sidebar({
           </button>
           <input
             type="text"
-            placeholder="Поиск по пользователю, проекту или тесту..."
+            placeholder="Поиск по пользователю, системе или тесту..."
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
@@ -377,13 +405,13 @@ export default function Sidebar({
       </div>
 
       <div className="sidebar-projects">
-        <div className="section-title">Проекты и тесты</div>
-        <div className="muted small">Проектов: {visibleProjectsCount} · Тестов: {visibleTestsCount}</div>
+        <div className="section-title">Системы и тесты</div>
+        <div className="muted small">Систем: {visibleProjectsCount} · Тестов: {visibleTestsCount}</div>
 
         {treeError ? <div className="error">{treeError}</div> : null}
 
         {visibleProjectsCount === 0 ? (
-          <div className="muted empty-box">Проекты или тесты по запросу не найдены.</div>
+          <div className="muted empty-box">Системы или тесты по запросу не найдены.</div>
         ) : user?.role === 'admin' ? (
           groupedItems.map((group) => {
             const isOwnerCollapsed = queryActive ? false : !!collapsedOwnerIds[group.key]
@@ -392,7 +420,7 @@ export default function Sidebar({
                 <div className="project-folder-header">
                   <div className="project-folder-user-info">
                     <div className="project-folder-title">{group.title}</div>
-                    <div className="project-folder-subtitle">{group.subtitle || 'Без электронной почты'} · Проектов: {group.projects.length}</div>
+                    <div className="project-folder-subtitle">{group.subtitle || 'Без электронной почты'} · Систем: {group.projects.length}</div>
                   </div>
                   <button
                     type="button"

@@ -41,15 +41,15 @@ function getTemplateDescription(templateId) {
 function buildGuide(activeTab, runtimePolicy) {
   if (activeTab === 'overview') {
     return [
-      { label: 'Название теста', text: 'Используй короткое и понятное имя, чтобы тест было легко найти в проекте.' },
-      { label: 'Что тестируется', text: 'Укажи конкретный API-метод, ресурс или бизнес-операцию.' },
+      { label: 'Название теста', text: 'Используй короткое и понятное имя, чтобы нагрузочный тест было легко найти в карточке системы.' },
+      { label: 'Что тестируется', text: 'Укажи конкретную точку входа внешней системы, ресурс, сервис или бизнес-операцию.' },
       { label: 'Цель теста', text: 'Опиши, какой результат считаешь успешным и какие риски хочешь проверить.' },
     ]
   }
 
   if (activeTab === 'config') {
     return [
-      { label: 'Адрес и путь', text: 'Базовый адрес сервиса и путь запроса лучше хранить раздельно: так удобнее менять окружение.' },
+      { label: 'Адрес и путь', text: 'Базовый адрес тестируемой системы и путь запроса лучше хранить раздельно: так проще менять стенды и внешние контуры.' },
       {
         label: 'Нагрузка',
         text: `Сейчас разрешено не более ${runtimePolicy?.max_virtual_users_per_test ?? '—'} виртуальных пользователей и ${runtimePolicy?.max_repeat_count_per_test ?? '—'} повторов на одного пользователя.`,
@@ -81,7 +81,7 @@ function buildGuide(activeTab, runtimePolicy) {
 
   if (activeTab === 'analytics') {
     return [
-      { label: 'Среднее время ответа', text: 'Общая усреднённая задержка ответа API.' },
+      { label: 'Среднее время ответа', text: 'Общая усреднённая задержка ответа тестируемой системы.' },
       { label: '95-й процентиль', text: 'Показывает, насколько медленными были самые тяжёлые 5 процентов запросов.' },
       { label: 'Пропускная способность', text: 'Сколько запросов система обрабатывала под нагрузкой за единицу времени.' },
     ]
@@ -89,7 +89,7 @@ function buildGuide(activeTab, runtimePolicy) {
 
   if (activeTab === 'logs') {
     return [
-      { label: 'Журнал выполнения', text: 'Используй логи для поиска сетевых ошибок, неожиданных кодов ответа и нестабильного поведения API.' },
+      { label: 'Журнал выполнения', text: 'Используй логи для поиска сетевых ошибок, неожиданных кодов ответа и нестабильного поведения внешней системы.' },
     ]
   }
 
@@ -148,7 +148,7 @@ export default function TestEditor({
       <div className="page-header">
         <div>
           <h1>{test?.name || 'Тест'}</h1>
-          <p className="muted">Отдельный тест внутри проекта: конфигурация, сценарий, запуски и метрики.</p>
+          <p className="muted">Отдельный нагрузочный тест для внешней системы: конфигурация, сценарий, запуски и метрики.</p>
           {activeRun ? (
             <div className="live-run-banner">
               <div className="live-run-banner__title">Есть активный запуск</div>
@@ -163,7 +163,7 @@ export default function TestEditor({
 
         <div className="header-actions">
           <button type="button" className="button-secondary" onClick={onBack}>
-            Назад к проекту
+            Назад к системе
           </button>
           <button className="button-secondary" onClick={onRun} disabled={Boolean(activeRun)}>
             {activeRun ? 'Тест выполняется' : 'Запустить тест'}
@@ -227,7 +227,7 @@ export default function TestEditor({
                 onChange={(e) => patch('target_entity', e.target.value)}
                 placeholder="Например, /api/orders"
               />
-              <FieldHint>Укажи ресурс API или бизнес-операцию.</FieldHint>
+              <FieldHint>Укажи точку входа внешней системы, URL, ресурс или бизнес-операцию.</FieldHint>
               {renderFieldError(fieldErrors, 'target_entity')}
             </label>
             <label className="field-span-2">
@@ -263,7 +263,7 @@ export default function TestEditor({
               <div className="section-head">
                 <div>
                   <h3>Текущая политика запуска</h3>
-                  <p className="muted">Эти ограничения применяются ко всем API-тестам.</p>
+                  <p className="muted">Эти ограничения применяются ко всем нагрузочным тестам внешних систем.</p>
                 </div>
               </div>
               <div className="policy-card__grid">
@@ -285,7 +285,7 @@ export default function TestEditor({
                 value={draft.target_url || ''}
                 onChange={(e) => patch('target_url', e.target.value)}
               />
-              <FieldHint>Базовый адрес API, например (http://localhost) или адрес стенда.</FieldHint>
+              <FieldHint>Базовый адрес внешней системы, стенда или точки входа нагрузки.</FieldHint>
               {renderFieldError(fieldErrors, 'target_url')}
             </label>
 
@@ -375,7 +375,7 @@ export default function TestEditor({
                   </option>
                 ))}
               </select>
-              <FieldHint>Выбери реальный HTTP-метод целевого API.</FieldHint>
+              <FieldHint>Выбери реальный HTTP-метод целевой внешней системы или сервиса.</FieldHint>
               {renderFieldError(fieldErrors, 'request_method')}
             </label>
 
@@ -411,7 +411,7 @@ export default function TestEditor({
                 onChange={(e) => patch('timeout', e.target.value)}
                 placeholder="30с"
               />
-              <FieldHint>Максимальное ожидание ответа от API.</FieldHint>
+              <FieldHint>Максимальное ожидание ответа от тестируемой системы.</FieldHint>
               {renderFieldError(fieldErrors, 'timeout')}
             </label>
 
@@ -447,7 +447,7 @@ export default function TestEditor({
                 onChange={(e) => patch('request_body', e.target.value)}
                 rows={8}
               />
-              <FieldHint>Используется в методах, которые отправляют данные в API.</FieldHint>
+              <FieldHint>Используется в методах, которые отправляют данные во внешнюю систему.</FieldHint>
               {renderFieldError(fieldErrors, 'request_body')}
             </label>
           </div>
@@ -511,7 +511,7 @@ export default function TestEditor({
                   value={draft.min_throughput ?? ''}
                   onChange={(e) => patch('min_throughput', e.target.value === '' ? null : Number(e.target.value))}
                 />
-                <FieldHint>Нижняя граница полезной производительности API.</FieldHint>
+                <FieldHint>Нижняя граница полезной производительности тестируемой системы.</FieldHint>
                 {renderFieldError(fieldErrors, 'min_throughput')}
               </label>
             </div>
@@ -530,7 +530,7 @@ export default function TestEditor({
               placeholder="Текст сценария теста"
               rows={16}
             />
-            <FieldHint>Опиши шаги проверки: подготовка, вызов API, ожидание результата и условия успеха.</FieldHint>
+            <FieldHint>Опиши шаги проверки: подготовка, вызов внешней системы, ожидание результата и условия успеха.</FieldHint>
             {renderFieldError(fieldErrors, 'script_content')}
           </label>
         </section>

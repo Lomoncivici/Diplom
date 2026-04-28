@@ -62,8 +62,8 @@ export default function TestList({ projectId, tests, onOpenTest, onReload }) {
     <section className="workspace-page">
       <div className="section-head">
         <div>
-          <h2>Тесты проекта</h2>
-          <p className="muted">Создавайте отдельные тесты под разные сценарии и нагрузки.</p>
+          <h2>Нагрузочные тесты системы</h2>
+          <p className="muted">Создавайте отдельные нагрузочные тесты под разные сценарии использования внешней системы.</p>
         </div>
         <div className="template-create-panel">
           <select value={selectedTemplateId} onChange={(event) => setSelectedTemplateId(event.target.value)}>
@@ -80,7 +80,7 @@ export default function TestList({ projectId, tests, onOpenTest, onReload }) {
       {tests.length === 0 ? (
         <div className="empty-state">
           <h3>Тестов пока нет</h3>
-          <p className="muted">Выберите шаблон и создайте первый тест для этого проекта.</p>
+          <p className="muted">Выберите шаблон и создайте первый тест для этой системы.</p>
           <button onClick={handleCreate}>Добавить тест</button>
         </div>
       ) : (

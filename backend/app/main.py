@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse, Response
 from app.api.routes_auth import router as auth_router
 from app.api.routes_project_settings import router as project_settings_router
 from app.api.routes_projects import router as projects_router
+from app.api.routes_project_components import router as project_components_router
 from app.api.routes_test_runs import router as test_runs_router
 from app.api.routes_tests import router as tests_router
 from app.api.routes_users import router as users_router
@@ -15,7 +16,7 @@ from app.schemas.database_backup import HealthStatusResponse
 from app.services.platform_status_service import platform_status_service
 
 app = FastAPI(
-    title="Diploma Load Testing Platform API",
+    title="Платформа нагрузочного тестирования и мониторинга",
     version="0.1.0",
 )
 
@@ -85,6 +86,7 @@ def healthcheck():
 app.include_router(auth_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
 app.include_router(projects_router, prefix="/api")
+app.include_router(project_components_router, prefix="/api")
 app.include_router(test_runs_router, prefix="/api")
 app.include_router(tests_router, prefix="/api")
 app.include_router(project_settings_router, prefix="/api")

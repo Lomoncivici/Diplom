@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { login, register } from '../api'
 import FieldHint from '../components/FieldHint'
 import FormGuide from '../components/FormGuide'
@@ -6,24 +6,18 @@ import { getErrorMessage, getFieldErrors } from '../utils/apiErrors'
 
 const authGuideItems = [
   {
-    label: 'Регистрация',
-    text: 'После регистрации нужно подтвердить адрес электронной почты по письму. Если адрес не подтвердить за 15 минут, учётная запись будет удалена.',
+    label: 'Электронная почта',
+    text: 'Используется как логин и как уникальный идентификатор учётной записи.',
+  },
+  {
+    label: 'ФИО',
+    text: 'Нужно для понятного отображения пользователя в интерфейсе и панели администратора.',
   },
   {
     label: 'Пароль',
-    text: 'Используйте не менее восьми символов, включая заглавные и строчные буквы, а также цифры.',
-  },
-  {
-    label: 'Восстановление доступа',
-    text: 'Если пароль забыт, воспользуйтесь ссылкой восстановления. На почту придёт временная одноразовая ссылка.',
+    text: 'Используй минимум восемь символов. Лучше сочетать буквы, цифры и специальные знаки.',
   },
 ]
-
-const initialForm = {
-  email: '',
-  full_name: '',
-  password: '',
-}
 
 function getInputClassName(fieldErrors, fieldName) {
   return fieldErrors[fieldName] ? 'input-error' : ''
@@ -33,22 +27,26 @@ function renderFieldError(fieldErrors, fieldName) {
   return fieldErrors[fieldName] ? <small className="field-error">{fieldErrors[fieldName]}</small> : null
 }
 
-export default function AuthPage({ onAuthSuccess, error: externalError, onOpenPasswordRecovery }) {
+export default function AuthPage({ onAuthSuccess, error: externalError = '' }) {
   const [mode, setMode] = useState('login')
-  const [form, setForm] = useState(initialForm)
-  const [fieldErrors, setFieldErrors] = useState({})
+  const [form, setForm] = useState({ email: '', full_name: '', password: '' })
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState({})
   const [loading, setLoading] = useState(false)
 
-  function updateField(name, value) {
-    setForm((prev) => ({ ...prev, [name]: value }))
+  useEffect(() => {
+    setError('')
+    setFieldErrors({})
+  }, [mode])
+
+  function updateField(field, value) {
+    setForm((prev) => ({ ...prev, [field]: value }))
     setFieldErrors((prev) => {
-      if (!prev[name]) return prev
+      if (!prev[field]) return prev
       const next = { ...prev }
-      delete next[name]
+      delete next[field]
       return next
     })
-    setError('')
   }
 
   async function handleSubmit(event) {
@@ -79,9 +77,9 @@ export default function AuthPage({ onAuthSuccess, error: externalError, onOpenPa
         <div className="auth-intro">
           <div className="brand-mark">АПИ</div>
           <div>
-            <h1>Платформа тестирования API</h1>
+            <h1>Платформа нагрузочного тестирования</h1>
             <p className="muted">
-              Управляйте проектами, создавайте тесты и отслеживайте запуски в одном интерфейсе.
+              Создавайте карточки тестируемых систем, запускайте нагрузочные тесты и анализируйте производительность в одном интерфейсе.
             </p>
           </div>
         </div>
@@ -129,7 +127,7 @@ export default function AuthPage({ onAuthSuccess, error: externalError, onOpenPa
                 onChange={(e) => updateField('full_name', e.target.value)}
                 required
               />
-              <FieldHint>Будет видно в проектах, списках и панели администратора.</FieldHint>
+              <FieldHint>Будет видно в карточках систем, списках и панели администратора.</FieldHint>
               {renderFieldError(fieldErrors, 'full_name')}
             </label>
           ) : null}
@@ -148,12 +146,6 @@ export default function AuthPage({ onAuthSuccess, error: externalError, onOpenPa
             <FieldHint>Лучше использовать буквы в разных регистрах, цифры и специальные символы.</FieldHint>
             {renderFieldError(fieldErrors, 'password')}
           </label>
-
-          {mode === 'login' ? (
-            <button type="button" className="link-button" onClick={onOpenPasswordRecovery}>
-              Забыли пароль?
-            </button>
-          ) : null}
 
           {error || externalError ? <div className="error">{error || externalError}</div> : null}
 

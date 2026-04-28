@@ -7,6 +7,7 @@ from alembic import context
 from app.models.base import Base
 from app.models.user import User
 from app.models.project import Project
+from app.models.project_component import ProjectComponent
 
 from app.models.project_settings import ProjectSettings
 from app.models.test import Test

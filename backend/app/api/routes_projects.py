@@ -26,7 +26,7 @@ def list_projects(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    stmt = select(Project).options(joinedload(Project.owner)).order_by(Project.created_at.desc())
+    stmt = select(Project).options(joinedload(Project.owner), joinedload(Project.tests), joinedload(Project.components)).order_by(Project.created_at.desc())
     if current_user.role != "admin":
         stmt = stmt.where(Project.owner_id == current_user.id)
     return list(db.scalars(stmt).unique().all())
@@ -39,8 +39,12 @@ def create_project(
     db: Session = Depends(get_db),
 ):
     project = Project(
-        name=payload.name.strip(),
-        description=payload.description.strip() if payload.description else None,
+        name=payload.name,
+        description=payload.description,
+        system_type=payload.system_type,
+        base_url=payload.base_url,
+        environment_name=payload.environment_name,
+        system_owner=payload.system_owner,
         owner_id=current_user.id,
     )
     db.add(project)
@@ -73,8 +77,12 @@ def update_project(
 ):
     project = get_project_or_403(project_id, current_user, db)
 
-    project.name = payload.name.strip()
-    project.description = payload.description.strip() if payload.description else None
+    project.name = payload.name
+    project.description = payload.description
+    project.system_type = payload.system_type
+    project.base_url = payload.base_url
+    project.environment_name = payload.environment_name
+    project.system_owner = payload.system_owner
 
     db.commit()
     db.refresh(project)
@@ -101,11 +109,11 @@ def get_project_analytics(
 ):
     project = db.scalar(
         select(Project)
-        .options(joinedload(Project.owner), joinedload(Project.tests))
+        .options(joinedload(Project.owner), joinedload(Project.tests), joinedload(Project.components))
         .where(Project.id == project_id)
     )
     if not project:
-        raise HTTPException(status_code=404, detail='Проект не найден')
+        raise HTTPException(status_code=404, detail='Система не найдена')
 
     metrics_stmt = (
         select(

@@ -38,7 +38,7 @@ const emptySystemSettings = {
   smtp_use_tls: true,
   smtp_use_ssl: false,
   email_from_address: '',
-  email_from_name: 'Платформа тестирования API',
+  email_from_name: 'Платформа нагрузочного тестирования',
   frontend_base_url: '',
   email_verification_subject_template: 'Подтверждение адреса электронной почты',
   email_verification_body_template: `Здравствуйте, {{full_name}}!\n\nДля подтверждения адреса перейдите по ссылке:\n{{link}}\n\nСсылка действует {{minutes}} минут.`,
@@ -59,14 +59,14 @@ const tabs = [
 const adminGuideItems = [
   {
     label: 'Вкладки панели администратора',
-    text: 'Каждый раздел вынесен в отдельную вкладку: пользователи, система, почта, резервная копия и аналитика. Раздел поддержки и дерево проектов открываются отдельно из боковой панели.',
+    text: 'Каждый раздел вынесен в отдельную вкладку: пользователи, система, почта, резервная копия и аналитика. Чаты поддержки и дерево тестируемых систем открываются отдельно из боковой панели.',
   },
   {
     label: 'Системные настройки',
-    text: 'Во вкладке «Система» задаются общие ограничения платформы: лимиты нагрузки, запусков и журналов, а также правила запуска тестов.',
+    text: 'Во вкладке «Система» задаются общие ограничения платформы: лимиты нагрузки, запусков и журналов, а также правила запуска тестов внешних систем.',
   },
   {
-    label: 'Почтовый сервис',
+    label: 'Настройки почты',
     text: 'Во вкладке «Почта» настраиваются сервер отправки, адрес отправителя и шаблоны писем. Эти параметры отделены от системных ограничений, чтобы не смешивать логику платформы и рассылки.',
   },
   {
@@ -74,8 +74,8 @@ const adminGuideItems = [
     text: 'Создание и восстановление базы выполняются отдельно. Перед восстановлением система создаёт страховочную копию текущих данных.',
   },
   {
-    label: 'Аналитика проекта',
-    text: 'Сводка по конкретному проекту помогает быстро оценить результаты всех тестов без перехода в историю каждого запуска.',
+    label: 'Аналитика системы',
+    text: 'Сводка по конкретной тестируемой системе помогает быстро оценить результаты всех её нагрузочных тестов без перехода в историю каждого запуска.',
   },
 ]
 
@@ -330,7 +330,7 @@ export default function AdminPage({ currentUser, users, projects, onDataChanged,
   }
 
   async function handleDeleteUser(user) {
-    const confirmed = window.confirm(`Удалить пользователя (${user.full_name})? Все его проекты и тесты тоже будут удалены.`)
+    const confirmed = window.confirm(`Удалить пользователя (${user.full_name})? Все его тестируемые системы и тесты тоже будут удалены.`)
     if (!confirmed) return
 
     setBusy(true)
@@ -977,15 +977,15 @@ export default function AdminPage({ currentUser, users, projects, onDataChanged,
       <section className="card form-card">
         <div className="section-head">
           <div>
-            <h2>Аналитика по проекту</h2>
-            <p className="muted">Выберите проект пользователя, чтобы получить общую сводку по тестам и запускам.</p>
+            <h2>Аналитика по системе</h2>
+            <p className="muted">Выберите систему пользователя, чтобы получить общую сводку по тестам и запускам.</p>
           </div>
         </div>
 
         <label>
-          Проект
+          Система
           <select value={selectedProjectId} onChange={(event) => setSelectedProjectId(event.target.value)}>
-            <option value="">Выберите проект</option>
+            <option value="">Выберите систему</option>
             {projectOptions.map((project) => (
               <option key={project.id} value={project.id}>{project.owner?.full_name || project.owner?.email || '—'} · {project.name}</option>
             ))}
@@ -1006,7 +1006,7 @@ export default function AdminPage({ currentUser, users, projects, onDataChanged,
               </div>
               <div className="sidebar-inline-actions">
                 <button type="button" className="button-secondary" onClick={() => onOpenProject(analytics.project_id)}>
-                  Открыть проект
+                  Открыть систему
                 </button>
               </div>
             </div>
@@ -1026,8 +1026,8 @@ export default function AdminPage({ currentUser, users, projects, onDataChanged,
           <section className="card form-card">
             <div className="section-head">
               <div>
-                <h2>Тесты проекта</h2>
-                <p className="muted">Список тестов и итоговых показателей по каждому из них.</p>
+                <h2>Нагрузочные тесты системы</h2>
+                <p className="muted">Список нагрузочных тестов и итоговых показателей по каждому из них.</p>
               </div>
             </div>
 
@@ -1054,8 +1054,8 @@ export default function AdminPage({ currentUser, users, projects, onDataChanged,
         </>
       ) : selectedProjectId ? null : (
         <section className="card empty-state">
-          <h3>Проект не выбран</h3>
-          <p className="muted">Выберите проект вверху страницы, чтобы увидеть его сводную аналитику.</p>
+          <h3>Система не выбрана</h3>
+          <p className="muted">Выберите систему вверху страницы, чтобы увидеть её сводную аналитику.</p>
         </section>
       )}
     </div>
@@ -1067,7 +1067,7 @@ export default function AdminPage({ currentUser, users, projects, onDataChanged,
         <div>
           <h1>Панель администратора</h1>
           <p className="muted">
-            Управление пользователями, системными настройками, почтой, резервными копиями и аналитикой.
+            Управление пользователями, системными ограничениями, почтовым сервисом, резервными копиями и аналитикой тестируемых систем.
           </p>
         </div>
         <div className="header-actions">
@@ -1081,7 +1081,7 @@ export default function AdminPage({ currentUser, users, projects, onDataChanged,
 
       <section className="stats-grid admin-summary-grid">
         <article className="card stat-card"><div className="muted">Пользователей</div><div className="stat-value">{users.length}</div></article>
-        <article className="card stat-card"><div className="muted">Проектов</div><div className="stat-value">{projects.length}</div></article>
+        <article className="card stat-card"><div className="muted">Систем</div><div className="stat-value">{projects.length}</div></article>
         <article className="card stat-card"><div className="muted">Тестов</div><div className="stat-value">{totalTests}</div></article>
       </section>
 

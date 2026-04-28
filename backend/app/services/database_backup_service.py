@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.models.auth_action_token import AuthActionToken
 from app.models.project import Project
+from app.models.project_component import ProjectComponent
 from app.models.project_settings import ProjectSettings
 from app.models.support_conversation import SupportConversation
 from app.models.support_message import SupportMessage
@@ -33,6 +34,7 @@ CORE_MODELS = [
 ]
 
 OPTIONAL_MODELS = [
+    ProjectComponent,
     SupportConversation,
     SupportMessage,
     AuthActionToken,
@@ -55,6 +57,7 @@ DELETE_MODELS = [
     TestRun,
     Test,
     ProjectSettings,
+    ProjectComponent,
     Project,
     SystemSettings,
     User,
